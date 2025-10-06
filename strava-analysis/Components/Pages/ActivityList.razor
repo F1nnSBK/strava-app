@@ -1,0 +1,30 @@
+@page "/my-activities";
+@using strava_analysis.Services;
+@using System.Collections.Generic;
+
+@inject StravaApiService StravaApi;
+<h3>ActivityList</h3>
+
+@if (_activities == null)
+{
+    <p><em>Loading activities...</em></p>
+}
+else
+{
+    <ul>
+        @foreach (var activity in _activities)
+        {
+            <li>@activity.Title</li>
+        }
+    </ul>
+}
+
+@code {
+    private List<StravaActivity>? _activities;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _activities = await StravaApi.GetStravaActivitiesAsync();
+    }
+
+}
