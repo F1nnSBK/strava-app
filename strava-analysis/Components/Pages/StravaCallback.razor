@@ -1,7 +1,10 @@
-@page "/strava-callback";
+@page "/strava-callback"
+@using strava_analysis.Services
+;
 @inject IConfiguration Configuration;
-@inject NavigationManager NavManager;
-@inject HttpClient HttpClient;
+@inject NavigationManager navManager;
+@inject HttpClient httpClient;
+@inject UserSession userSession
 
 <h3>Login wird verarbeitet...</h3>
 
@@ -14,7 +17,7 @@
     {
         if (string.IsNullOrEmpty(Code))
         {
-            NavManager.NavigateTo("/login");
+            navManager.NavigateTo("/login");
             return;
         }
         
@@ -30,19 +33,23 @@
         };
 
         var response = await 
-            HttpClient.PostAsync("https://www.strava.com/oauth/token", new FormUrlEncodedContent(requestData));
+            httpClient.PostAsync("https://www.strava.com/oauth/token", new FormUrlEncodedContent(requestData));
 
         if (response.IsSuccessStatusCode)
         {
             var tokenResponse = await response.Content.ReadFromJsonAsync<StravaTokenResponse>();
             
-            // TODO: Save Token for session
+            // Save Token for session
+            if (tokenResponse?.access_token is not null)
+            {
+                userSession.SetToken(tokenResponse.access_token);
+            }
 
-            NavManager.NavigateTo("/my-activities");
+            navManager.NavigateTo("/my-activities");
         }
         else
         {
-            NavManager.NavigateTo("/login?error=auth_failed");
+            navManager.NavigateTo("/login?error=auth_failed");
         }
     }
 

@@ -8,10 +8,12 @@ namespace strava_analysis.Services;
 public class StravaApiService
 {
     private readonly HttpClient _httpClient;
+    private readonly UserSession _userSession;
     
-    public StravaApiService(HttpClient httpClient)
+    public StravaApiService(HttpClient httpClient, UserSession userSession)
     {
         _httpClient = httpClient;
+        _userSession = userSession;
     }
     
     // Strava Access-Token for OAtuh2
@@ -25,6 +27,14 @@ public class StravaApiService
     public async Task<List<StravaActivity>?> GetStravaActivitiesAsync()
     {
         var requestUrl = "https://www.strava.com/api/v3/athlete/activities";
+
+        if (!_userSession.IsLoggedIn)
+        {
+            return null;
+        }
+        
+        _httpClient.DefaultRequestHeaders.Authorization = 
+            new AuthenticationHeaderValue("Bearer", _userSession.AccessToken);
 
         try
         {
