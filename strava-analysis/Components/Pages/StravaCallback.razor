@@ -1,0 +1,64 @@
+@page "/strava-callback"
+@using strava_analysis.Services
+;
+@inject IConfiguration Configuration;
+@inject NavigationManager navManager;
+@inject HttpClient httpClient;
+@inject UserSession userSession
+
+<h3>Login wird verarbeitet...</h3>
+
+@code
+{
+    [SupplyParameterFromQuery]
+    public string? Code { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrEmpty(Code))
+        {
+            navManager.NavigateTo("/login");
+            return;
+        }
+        
+        var clientId = Configuration["Strava:ClientId"];
+        var clientSecret = Configuration["Strava:ClientSecret"];
+
+        var requestData = new Dictionary<string, string>
+        {
+            { "client_id", clientId },
+            { "client_secret", clientSecret },
+            { "code", Code },
+            { "grant_type", "authorization_code" },
+        };
+
+        var response = await 
+            httpClient.PostAsync("https://www.strava.com/oauth/token", new FormUrlEncodedContent(requestData));
+
+        if (response.IsSuccessStatusCode)
+        {
+            var tokenResponse = await response.Content.ReadFromJsonAsync<StravaTokenResponse>();
+            
+            // Save Token for session
+            if (tokenResponse?.access_token is not null)
+            {
+                userSession.SetToken(tokenResponse.access_token);
+            }
+
+            navManager.NavigateTo("/my-activities");
+        }
+        else
+        {
+            navManager.NavigateTo("/login?error=auth_failed");
+        }
+    }
+
+    private class StravaTokenResponse
+    {
+        public string? token_type { get; set; }
+        public long? expires_at { get; set; }
+        public int? expires_in { get; set; }
+        public string? refresh_token { get; set; }
+        public string? access_token { get; set; }
+    }
+}

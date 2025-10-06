@@ -1,10 +1,15 @@
 using strava_analysis.Components;
+using strava_analysis.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<StravaApiService>();
+builder.Services.AddSingleton<UserSession>();
 
 var app = builder.Build();
 

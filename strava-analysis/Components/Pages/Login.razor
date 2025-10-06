@@ -1,0 +1,29 @@
+@page "/login";
+@inject IConfiguration Configuration;
+@inject NavigationManager NavManager;
+
+<h3>Login with Strava</h3>
+
+<a href="@_stravaAuthUrl" class="btn btn-primary">Mit Strava verbinden</a>
+
+
+@code {
+
+    private string? _stravaAuthUrl;
+
+    protected override void OnInitialized()
+    {
+        var clientId = Configuration["Strava:ClientId"];
+        var redirectUri = NavManager.ToAbsoluteUri("/strava-callback").ToString();
+
+        var scope = "activity:read_all";
+
+        _stravaAuthUrl = "https://strava.com/oauth/authorize?" +
+                         $"client_id={clientId}&" +
+                         $"redirect_uri={redirectUri}&" +
+                         "response_type=code&" +
+                         "approval_prompt=auto&" +
+                         $"scope={scope}";
+    }
+
+}
