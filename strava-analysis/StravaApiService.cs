@@ -26,24 +26,31 @@ public class StravaApiService
     // Activities of a Strava Athlete
     public async Task<List<StravaActivity>?> GetStravaActivitiesAsync()
     {
-        var requestUrl = "https://www.strava.com/api/v3/athlete/activities";
+        Console.WriteLine("GetMyActivitiesAsync wurde aufgerufen.");
 
         if (!_userSession.IsLoggedIn)
         {
+            Console.WriteLine("Fehler: Nutzer ist nicht eingeloggt.");
             return null;
         }
-        
-        _httpClient.DefaultRequestHeaders.Authorization = 
+
+        // Token für DIESE eine Anfrage setzen
+        _httpClient.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", _userSession.AccessToken);
+
+        var requestUrl = "https://www.strava.com/api/v3/athlete/activities";
+        Console.WriteLine($"Sende Anfrage an: {requestUrl}");
 
         try
         {
             var activities = await _httpClient.GetFromJsonAsync<List<StravaActivity>>(requestUrl);
+            Console.WriteLine($"Erfolg: {activities?.Count ?? 0} Aktivitäten gefunden.");
             return activities;
         }
         catch (HttpRequestException ex)
         {
-            Console.WriteLine($"API Request failed: {ex.Message}");
+            // Gib den echten Fehler aus, anstatt ihn zu verschlucken!
+            Console.WriteLine($"API-Fehler! Status: {ex.StatusCode}, Nachricht: {ex.Message}");
             return null;
         }
     }

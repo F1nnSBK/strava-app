@@ -9,7 +9,7 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<StravaApiService>();
-builder.Services.AddScoped<UserSession>();
+builder.Services.AddSingleton<UserSession>();
 
 var app = builder.Build();
 

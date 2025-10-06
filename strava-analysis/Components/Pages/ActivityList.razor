@@ -2,21 +2,33 @@
 @using strava_analysis.Services;
 @using System.Collections.Generic;
 
+@inject UserSession UserSession;
 @inject StravaApiService StravaApi;
 <h3>ActivityList</h3>
 
-@if (_activities == null)
+@if (_activities is not null && _activities.Any())
 {
-    <p><em>Loading activities...</em></p>
-}
-else
-{
-    <ul>
+    <div class="activity-list">
         @foreach (var activity in _activities)
         {
-            <li>@activity.Title</li>
+            <div class="activity-card" style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; border-radius: 5px;">
+                <h4>@activity.Title</h4>
+                <p>
+                    <strong>🗓️ Datum:</strong> @activity.StartDateLocal.ToString("dd.MM.yyyy")
+                    <br />
+                    <strong>🚴 Typ:</strong> @activity.Type
+                    <br />
+                    <strong>📏 Distanz:</strong> @((activity.DistanceInMeters / 1000).ToString("F2")) km
+                    <br />
+                    <strong>⏱️ Zeit:</strong> @TimeSpan.FromSeconds(activity.MovingTimeInSeconds).ToString(@"hh\:mm\:ss")
+                    <br />
+                    <strong>⛰️ Höhenmeter:</strong> @activity.ElevationGainInMeters.ToString("F0") m
+                    <br />
+                    <strong>👍 Kudos:</strong> @activity.KudosCount
+                </p>
+            </div>
         }
-    </ul>
+    </div>
 }
 
 @code {
@@ -24,7 +36,12 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        _activities = await StravaApi.GetStravaActivitiesAsync();
-    }
+        Console.WriteLine($"ActivityList OnInitializedAsync: IsLoggedIn = {UserSession.IsLoggedIn}");
 
+        if (UserSession.IsLoggedIn)
+        {
+            _activities = await StravaApi.GetStravaActivitiesAsync();
+            StateHasChanged();
+        }
+    }
 }
